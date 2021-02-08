@@ -16,10 +16,7 @@ namespace Fractals.Generators
     {
 
 
-        public override string ToString()
-        {
-            return "Newton Fractal";
-        }
+        public override string ToString() => "Newton Fractal";
 
         public NewtonFractal()
         {

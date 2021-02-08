@@ -1,7 +1,6 @@
 ﻿using Fractals.Generators;
 using Fractals.Resources;
 using Fractals.Viewmodel;
-using org.mariuszgromada.math.mxparser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -69,6 +68,13 @@ namespace Fractals
             // write to file
 
             await SaveWriteableBitmapToFile(Viewmodel.Bitmap, file);
+
+            Debug.WriteLine($"Exported {file.DisplayName}");
+            Debug.WriteLine($"Horizontal Min/Max");
+            Debug.WriteLine($"[{Viewmodel.Values.left}, {Viewmodel.Values.right}]");
+            Debug.WriteLine($"Vertical Min/Max");
+            Debug.WriteLine($"[{Viewmodel.Values.bottom}, {Viewmodel.Values.top}]");
+            Debug.WriteLine("");
 
             Windows.Storage.Provider.FileUpdateStatus status =
                 await Windows.Storage.CachedFileManager.CompleteUpdatesAsync(file);

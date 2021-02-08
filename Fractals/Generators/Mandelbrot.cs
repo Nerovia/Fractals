@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml.Media.Imaging;
+using ColorHelper;
 
 namespace Fractals.Generators
 {
@@ -37,10 +38,7 @@ namespace Fractals.Generators
 
         public override ValueRect DefaultValues => new ValueRect(-3.5, -3, 2.5, 3);
 
-        public override string ToString()
-        {
-            return "Mandelbrot";
-        }
+        public override string ToString() => "Mandelbrot";
 
         public override void UpdateBitmap(WriteableBitmap bitmap, ValueRect values)
         {
@@ -77,22 +75,64 @@ namespace Fractals.Generators
 
             var pixeldata = new byte[bitmap.PixelWidth * bitmap.PixelHeight * 4];
 
-            int n = 0;
+
+
+            int totalNumIterations = 0;
+            int[] numIterations = new int[Iterations + 1];
+
+            for (int y = 0; y < pixels.Height; y++)
+                for (int x = 0; x < pixels.Width; x++)
+                    numIterations[plot[x, y]]++;
+
+
+            foreach (var n in numIterations)
+                totalNumIterations += n;
+
+
+            int m = 0;
             for (int y = 0; y < bitmap.PixelHeight; y++)
             {
                 for (int x = 0; x < bitmap.PixelWidth; x++)
                 {
-                    var result = plot[x, y];
+                    var iterations = plot[x, y];
 
-                    if (result >= maxIterationCount)
+                    if (iterations >= maxIterationCount)
                         ValuesInCondomain += 1;
 
-                    pixeldata[n++] = (byte)(result * 255 / maxIterationCount);
-                    pixeldata[n++] = 0;
-                    pixeldata[n++] = 0;
-                    pixeldata[n++] = 255;
+                    double hue = 0;
+                    for (int i = 0; i <= iterations; i++)
+                        hue += (double)numIterations[i] / (double)totalNumIterations;
+
+                    hue *= 360;
+
+                    RGB color = ColorConverter.HsvToRgb(new HSV((int)hue, 60, 100));
+
+                    pixeldata[m++] = color.B;
+                    pixeldata[m++] = color.G;
+                    pixeldata[m++] = color.R;
+                    pixeldata[m++] = 255;
                 }
             }
+
+
+            //int n = 0;
+            //for (int y = 0; y < bitmap.PixelHeight; y++)
+            //{
+            //    for (int x = 0; x < bitmap.PixelWidth; x++)
+            //    {
+            //        var result = plot[x, y];
+
+            //        if (result >= maxIterationCount)
+            //            ValuesInCondomain += 1;
+
+            //        RGB color = ColorConverter.HsvToRgb(new HSV(result * 15, 60, 100));
+
+            //        pixeldata[n++] = color.B;
+            //        pixeldata[n++] = color.G;
+            //        pixeldata[n++] = color.R;
+            //        pixeldata[n++] = 255;
+            //    }
+            //}
 
             using (var stream = bitmap.PixelBuffer.AsStream())
             {
@@ -127,16 +167,28 @@ namespace Fractals.Generators
             int iteration = 0;
             double reZ = 0;
             double imZ = 0;
+            int escapeBoundary = 4;
 
-            while (reZ * reZ + imZ * imZ <= 2 * 2 && iteration < Iterations)
+            while (reZ * reZ + imZ * imZ <= escapeBoundary && iteration < Iterations)
             {
                 var temp = reZ * reZ - imZ * imZ + reC;
-
-
                 imZ = 2 * reZ * imZ + imC;
                 reZ = temp;
                 iteration += 1;
             }
+
+            //if (iteration < Iterations)
+            //{
+            //    var log_zn = Math.Log(reZ * reZ + imZ * imZ) / 2;
+            //    var nu = Math.Log(log_zn / Math.Log(2)) / Math.Log(2);
+            //    // Rearranging the potential function.
+            //    // Dividing log_zn by log(2) instead of log(N = 1<<8)
+            //    // because we want the entire palette to range from the
+            //    // center to radius 2, NOT our bailout radius.
+            //    iteration = (int)(iteration + 1 - nu);
+            //}
+
+
 
             return iteration;
         }

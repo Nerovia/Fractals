@@ -1,4 +1,5 @@
-﻿using Fractals.Resources;
+﻿using ColorHelper;
+using Fractals.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +11,18 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace Fractals.Generators
 {
-    public class JuliaSet : FractalGenerator
+    public interface IJulia
+    {
+        Complex C { get; set; }
+    }
+
+    public class JuliaSet : FractalGenerator, IJulia
     {
         public override ValueRect DefaultValues => new ValueRect(-2, -2, 2, 2);
 
         public override string ToString() => "Julia Set";
 
-        public Complex C = new Complex(-0.5, 0);
+        public Complex C { get; set; } = new Complex(-0.5, 0);
 
         public override int Iterations { get; set; } = 100;
 
@@ -24,13 +30,15 @@ namespace Fractals.Generators
 
         public override void UpdateBitmap(WriteableBitmap bitmap, ValueRect values)
         {
+            
+
             PixelRect pixels = new PixelRect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight);
 
             ValuesInDomain = pixels.Width * pixels.Height;
             ValuesInCondomain = 0;
 
             int[,] plot = new int[pixels.Width, pixels.Height];
-
+            
             List<MandelPlotParameters> args = new List<MandelPlotParameters>();
             List<Task> tasks = new List<Task>();
 
@@ -57,6 +65,49 @@ namespace Fractals.Generators
 
             var pixeldata = new byte[bitmap.PixelWidth * bitmap.PixelHeight * 4];
 
+
+            //int totalNumIterations = 0;
+            //int[] numIterations = new int[Iterations + 1];
+
+            //for (int y = 0; y < pixels.Height; y++)
+            //    for (int x = 0; x < pixels.Width; x++)
+            //        numIterations[plot[x, y]]++;
+
+
+            //foreach (var n in numIterations)
+            //    totalNumIterations += n;
+
+
+
+            //int m = 0;
+            //for (int y = 0; y < bitmap.PixelHeight; y++)
+            //{
+            //    for (int x = 0; x < bitmap.PixelWidth; x++)
+            //    {
+            //        var iterations = plot[x, y];
+
+            //        if (iterations >= maxIterationCount)
+            //            ValuesInCondomain += 1;
+
+            //        double hue = 0;
+            //        for (int i = 0; i <= iterations; i++)
+            //            hue += (double)numIterations[i] / (double)totalNumIterations;
+
+            //        hue *= 360;
+
+            //        RGB color = ColorConverter.HsvToRgb(new HSV((int)hue, 60, 100));
+
+            //        pixeldata[m++] = color.B;
+            //        pixeldata[m++] = color.G;
+            //        pixeldata[m++] = color.R;
+            //        pixeldata[m++] = 255;
+            //    }
+            //}
+
+
+
+
+
             int n = 0;
             for (int y = 0; y < bitmap.PixelHeight; y++)
             {
@@ -67,9 +118,11 @@ namespace Fractals.Generators
                     if (result >= maxIterationCount)
                         ValuesInCondomain += 1;
 
-                    pixeldata[n++] = (byte)(result * 255 / maxIterationCount);
-                    pixeldata[n++] = 0;
-                    pixeldata[n++] = 0;
+                    RGB color = ColorConverter.HsvToRgb(new HSV(result * 15, 60, 100));
+
+                    pixeldata[n++] = color.B;
+                    pixeldata[n++] = color.G;
+                    pixeldata[n++] = color.R;
                     pixeldata[n++] = 255;
                 }
             }
@@ -103,13 +156,13 @@ namespace Fractals.Generators
             }
         }
 
-        public double R { get; set; } = 2;
+        public double EscapeBoundary { get; set; } = 4;
 
         public int Iterate(double reZ, double imZ)
         {
             int iteration = 0;
 
-            while (reZ * reZ + imZ * imZ < Math.Pow(R, 2) && iteration < Iterations)
+            while (reZ * reZ + imZ * imZ < EscapeBoundary && iteration < Iterations)
             {
                 var temp = reZ * reZ - imZ * imZ;
                 imZ = 2 * reZ * imZ + C.Imaginary;
@@ -124,7 +177,7 @@ namespace Fractals.Generators
         {
             double n = 10;
             int iteration = 0;
-            while (zx * zx + zy * zy < Math.Pow(R, 2) && iteration < Iterations)
+            while (zx * zx + zy * zy < EscapeBoundary && iteration < Iterations)
             {
                 var temp = Math.Pow((zx * zx + zy * zy), (n / 2)) * Math.Cos(n * Math.Atan2(zy, zx)) + C.Real;
                 zy = Math.Pow((zx * zx + zy * zy), (n / 2)) * Math.Sin(n * Math.Atan2(zy, zx)) + C.Imaginary;

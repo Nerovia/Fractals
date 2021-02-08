@@ -16,6 +16,13 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace Fractals.Viewmodel
 {
+    public class FrameResolution
+    {
+        string Name { get; set; }
+
+        ValueRect Values { get; set; }
+    }
+
     public class FractalViewmodel : BindableBase
     {
         #region Constructor
@@ -67,7 +74,7 @@ namespace Fractals.Viewmodel
             get
             {
                 if (Generator is JuliaSet)
-                    return (Generator as JuliaSet).R;
+                    return (Generator as JuliaSet).EscapeBoundary;
                 else
                     return 0;
             }
@@ -76,9 +83,9 @@ namespace Fractals.Viewmodel
                 if (Generator is JuliaSet)
                 {
                     var g = Generator as JuliaSet;
-                    if (g.R != value)
+                    if (g.EscapeBoundary != value)
                     {
-                        g.R = value;
+                        g.EscapeBoundary = value;
                         OnPropertyChanged(nameof(R));
                         Refresh();
                     }
@@ -91,16 +98,16 @@ namespace Fractals.Viewmodel
         {
             get
             {
-                if (Generator is JuliaSet)
-                    return (Generator as JuliaSet).C.Imaginary;
+                if (Generator is IJulia)
+                    return (Generator as IJulia).C.Imaginary;
                 else
                     return 0;
             }
             set
             {
-                if (Generator is JuliaSet)
+                if (Generator is IJulia)
                 {
-                    var g = Generator as JuliaSet;
+                    var g = Generator as IJulia;
                     if (g.C.Imaginary != value)
                     {
                         g.C = new Complex(g.C.Real, value);
@@ -116,16 +123,16 @@ namespace Fractals.Viewmodel
         {
             get
             {
-                if (Generator is JuliaSet)
-                    return (Generator as JuliaSet).C.Real;
+                if (Generator is IJulia)
+                    return (Generator as IJulia).C.Real;
                 else
                     return 0;
             }
             set
             {
-                if (Generator is JuliaSet)
+                if (Generator is IJulia)
                 {
-                    var g = Generator as JuliaSet;
+                    var g = Generator as IJulia;
                     if (g.C.Real != value)
                     {
                         g.C = new Complex(value, g.C.Imaginary); ;
@@ -140,6 +147,8 @@ namespace Fractals.Viewmodel
 
         public FractalGenerator[] Generators { get; } =
         {
+            new NewtonFractal2(),
+            new NewtonMethode2(),
             new NewtonMethode(),
             new NewtonFractal(),
             new Mandelbrot(),
@@ -148,7 +157,7 @@ namespace Fractals.Viewmodel
         };
 
 
-        public int[] Resolutions { get; } = { 10, 50, 100, 200, 400, 600, 800, 1000, 2000 };
+        public int[] Resolutions { get; } = { 10, 50, 100, 200, 400, 600, 800, 1000, 2000, 3000 };
 
 
 
@@ -189,36 +198,43 @@ namespace Fractals.Viewmodel
 
         public double HorizontalOffset
         {
-            get => _HorizontalOffset;
+            get => Values.CenterX - Generator.DefaultValues.CenterX;
             set 
             {
-                if (Set(ref _HorizontalOffset, value))
-                    UpdateFrame();
+                
             }
         }
         private double _HorizontalOffset;
 
         public double VerticalOffset
         {
-            get => _VerticalOffset;
+            get => Generator.DefaultValues.CenterY - Values.CenterY;
             set 
             {
-                if (Set(ref _VerticalOffset, value))
-                    UpdateFrame();
+                
             }
         }
         private double _VerticalOffset;
 
         public double Zoom
         {
-            get => _Zoom;
+            get => Generator.DefaultValues.Width / Values.Width;
             set 
             {
-                if (Set(ref _Zoom, value))
-                    UpdateFrame();
+                var v = Generator.DefaultValues;
+                double width = v.Width / value;
+                double height = v.Height / value;
+                double offsetX = v.left / value + Values.left - v.left;
+                double offsetY = v.top / value + VerticalOffset;
+
+                Values = new ValueRect(offsetX, offsetY, width + offsetX, height + offsetY);
+                Refresh();
             }
         }
         private double _Zoom = 1;
+
+
+       
 
 
         public WriteableBitmap Bitmap
@@ -246,10 +262,11 @@ namespace Fractals.Viewmodel
                 {
                     OnPropertyChanged(nameof(HorizontalOffset));
                     OnPropertyChanged(nameof(VerticalOffset));
+                    OnPropertyChanged(nameof(Zoom));
                 }
             }
         }
-        private ValueRect _Values = new ValueRect(-1, -1, 1, 1);
+        private ValueRect _Values;
 
 
         public double ZoomSpeed
@@ -310,8 +327,6 @@ namespace Fractals.Viewmodel
 
             if (point.Properties.MouseWheelDelta < 0)
             {
-                _Zoom /= ZoomSpeed;
-
                 // Change the size of the picturebox, multiply it by the ZOOMFACTOR
                 width = width * ZoomSpeed;
                 height = height * ZoomSpeed;
@@ -323,8 +338,6 @@ namespace Fractals.Viewmodel
             }
             else
             {
-                _Zoom *= ZoomSpeed;
-
                 // Change the size of the picturebox, divide it by the ZOOMFACTOR
                 width = width / ZoomSpeed;
                 height = height / ZoomSpeed;
@@ -333,13 +346,6 @@ namespace Fractals.Viewmodel
                 offsetY = yPos - (yPos - offsetY) / ZoomSpeed;
                 offsetX = xPos - (xPos - offsetX) / ZoomSpeed;
             }
-
-            _HorizontalOffset = offsetX - (-1 / Zoom);
-            _VerticalOffset = offsetY - (-1 / Zoom);
-
-            OnPropertyChanged(nameof(HorizontalOffset));
-            OnPropertyChanged(nameof(VerticalOffset));
-            OnPropertyChanged(nameof(Zoom));
 
             Values = new ValueRect(offsetX, offsetY, width + offsetX, height + offsetY);
             Refresh();
@@ -353,10 +359,11 @@ namespace Fractals.Viewmodel
 
         public void UpdateFrame()
         {
-            double width = 2 / Zoom;
-            double height = 2 / Zoom;
-            double offsetX = -1 / Zoom + HorizontalOffset;
-            double offsetY = -1 / Zoom + VerticalOffset;
+            var v = Generator.DefaultValues;
+            double width = v.Width / Zoom;
+            double height = v.Height / Zoom;
+            double offsetX = v.left / Zoom + HorizontalOffset;
+            double offsetY = v.top / Zoom + VerticalOffset;
 
             Values = new ValueRect(offsetX, offsetY, width + offsetX, height + offsetY);
             Refresh();

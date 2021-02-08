@@ -68,13 +68,14 @@
                                 Header="ReC"
                                 Margin="5"
                                 SpinButtonPlacementMode="Inline"
-
+                                SmallChange="0.1"
                                 Value="{Binding ReC, Mode=TwoWay}"/>
 
                             <muxc1:NumberBox
                                 Grid.Column="1"
                                 Header="ImC"
                                 Margin="5"
+                                SmallChange="0.1"
                                 SpinButtonPlacementMode="Inline"
 
                                 Value="{Binding ImC, Mode=TwoWay}"/>
@@ -153,13 +154,22 @@
 
             <Border Background="{StaticResource SystemControlAcrylicWindowBrush}">
                 <Viewbox Margin="40" Stretch="Uniform">
-                    <Image
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center"
-                        x:Name="image" 
-                        Source="{Binding Bitmap, Mode=OneWay}"
-                        PointerWheelChanged="image_PointerWheelChanged"/>
-                    </Viewbox>
+                    <Grid>
+                        <Image
+                            Width="100"
+                            Height="100"
+                            x:Name="image" 
+                            Source="{Binding Bitmap, Mode=OneWay}"
+                            PointerWheelChanged="image_PointerWheelChanged"/>
+                        <Ellipse 
+                            Width="1" 
+                            Height="1"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Fill="White"/>
+                        
+                    </Grid>
+                </Viewbox>
             </Border>
             
             
