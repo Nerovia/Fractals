@@ -23,6 +23,9 @@ namespace Fractals.Viewmodel
         ValueRect Values { get; set; }
     }
 
+    
+
+    
     public class FractalViewmodel : BindableBase
     {
         #region Constructor

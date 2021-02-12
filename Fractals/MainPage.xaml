@@ -47,54 +47,11 @@
                             Header="Iterations"
                             Margin="5"
                             SpinButtonPlacementMode="Inline"
-                            Minimum="{Binding MinIterations, Mode=OneWay}"
-                            Maximum="{Binding MaxIterations, Mode=OneWay}"
+                            Minimum="0"
+                            Maximum="1000"
                             Value="{Binding Iterations, Mode=TwoWay}"/>
 
-                        <muxc1:NumberBox
-                            Header="R"
-                            Margin="5"
-                            SpinButtonPlacementMode="Inline"
-
-                            Value="{Binding R, Mode=TwoWay}"/>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <muxc1:NumberBox
-                                Header="ReC"
-                                Margin="5"
-                                SpinButtonPlacementMode="Inline"
-                                SmallChange="0.1"
-                                Value="{Binding ReC, Mode=TwoWay}"/>
-
-                            <muxc1:NumberBox
-                                Grid.Column="1"
-                                Header="ImC"
-                                Margin="5"
-                                SmallChange="0.1"
-                                SpinButtonPlacementMode="Inline"
-
-                                Value="{Binding ImC, Mode=TwoWay}"/>
-                        </Grid>
-
-                        <muxc1:NumberBox
-                            Header="Values in Domain"
-                            Margin="5"
-                            Value="{Binding ValuesInDomain, Mode=OneWay}"
-                            IsEnabled="False"
-                            />
-
-
-                        <muxc1:NumberBox
-                            Header="Values in Condomain"
-                            Margin="5"
-                            Value="{Binding ValuesInCondomain, Mode=OneWay}"
-                            IsEnabled="False"
-                            />
+                        
 
                        
 
@@ -109,14 +66,14 @@
                             AcceptsExpression="True"
                             Margin="5"
                             SpinButtonPlacementMode="Inline"
-                            Value="{Binding HorizontalOffset, Mode=TwoWay}"/>
+                            Value="{Binding OriginX, Mode=TwoWay}"/>
 
                         <muxc1:NumberBox
                             Header="Vertical Offset"
                             AcceptsExpression="True"
                             Margin="5"
                             SpinButtonPlacementMode="Inline"
-                            Value="{Binding VerticalOffset, Mode=TwoWay}"
+                            Value="{Binding OriginY, Mode=TwoWay}"
                             />
 
                         <muxc1:NumberBox
@@ -124,6 +81,7 @@
                             AcceptsExpression="True"
                             Margin="5"
                             SpinButtonPlacementMode="Inline"
+                            
                             Value="{Binding Zoom, Mode=TwoWay}"/>
 
                        
@@ -160,7 +118,9 @@
                             Height="100"
                             x:Name="image" 
                             Source="{Binding Bitmap, Mode=OneWay}"
-                            PointerWheelChanged="image_PointerWheelChanged"/>
+                            PointerWheelChanged="image_PointerWheelChanged"
+                            PointerMoved="image_PointerMoved"
+                            PointerPressed="image_PointerPressed"/>
                         <Ellipse 
                             Width="1" 
                             Height="1"

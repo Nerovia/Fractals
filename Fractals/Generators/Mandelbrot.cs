@@ -34,7 +34,7 @@ namespace Fractals.Generators
 
         public override int Iterations { get; set; } = 100;
 
-        public override int MaxIterations { get; protected set; } = 1000;
+        public override int MaxIterations { get; protected set; } = 5000;
 
         public override ValueRect DefaultValues => new ValueRect(-3.5, -3, 2.5, 3);
 
@@ -99,13 +99,18 @@ namespace Fractals.Generators
                     if (iterations >= maxIterationCount)
                         ValuesInCondomain += 1;
 
+                    
+
+
                     double hue = 0;
                     for (int i = 0; i <= iterations; i++)
                         hue += (double)numIterations[i] / (double)totalNumIterations;
 
                     hue *= 360;
 
-                    RGB color = ColorConverter.HsvToRgb(new HSV((int)hue, 60, 100));
+                    Color color = DomainColor.HsvToRgb(hue, 0.6, 1.0);
+                    if (iterations == Iterations)
+                        color = Colors.Black;
 
                     pixeldata[m++] = color.B;
                     pixeldata[m++] = color.G;
@@ -167,7 +172,7 @@ namespace Fractals.Generators
             int iteration = 0;
             double reZ = 0;
             double imZ = 0;
-            int escapeBoundary = 4;
+            int escapeBoundary = 80;
 
             while (reZ * reZ + imZ * imZ <= escapeBoundary && iteration < Iterations)
             {
