@@ -2,410 +2,174 @@
 using Fractals.Resources;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
-using Windows.Storage;
-using Windows.Storage.Streams;
-using Windows.UI.Xaml;
+using Windows.UI.Input;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace Fractals.Viewmodel
 {
-    public class FrameResolution
+    public abstract class FractalViewmodel : BindableBase
     {
-        string Name { get; set; }
-
-        ValueRect Values { get; set; }
-    }
-
-    
-
-    
-    public class FractalViewmodel : BindableBase
-    {
-        #region Constructor
-
-
-
-        public FractalViewmodel()
+        public FractalViewmodel(FractalGenerator generator)
         {
-            CreateBitmap();
-            Generator = Generators.FirstOrDefault();
+            Model = generator;
         }
 
-
-
-        #endregion
-
-        #region Properties
-
-
-        public int ValuesInDomain { get => Generator.ValuesInDomain; }
-
-
-        public int ValuesInCondomain { get => Generator.ValuesInCondomain; }
-
+        protected FractalGenerator Model { get; private set; }
 
         public int Iterations
         {
-            get => Generator.Iterations;
+            get => Model.Iterations;
             set
             {
-                if (Generator.Iterations != value)
+                value = Math.Clamp(value, IterationsMin, IterationsMax);
+                if (Model.Iterations != value)
                 {
-                    Generator.Iterations = value;
+                    Model.Iterations = value;
                     OnPropertyChanged(nameof(Iterations));
-                    Refresh();
                 }
             }
         }
 
-        public int MaxIterations { get => Generator.MaxIterations; }
+        public virtual int IterationsMin { get; } = 0;
 
-        public int MinIterations { get => Generator.MinIterations; }
+        public virtual int IterationsMax { get; } = 1000;
 
+        public virtual IViewbox DefaultViewbox { get; } = new SimpleViewbox(-1, 1, 2, 2);
 
-
-
-        public double R
+        public override string ToString()
         {
-            get
-            {
-                if (Generator is JuliaSet)
-                    return (Generator as JuliaSet).EscapeBoundary;
-                else
-                    return 0;
-            }
+            return Model.ToString();
+        }
+
+        public void Update(WriteableBitmap bitmap, IViewbox viewbox)
+        {
+            Model.Update(bitmap, viewbox);
+        }
+
+        public virtual void OnFractalPressed(Complex origin, PointerPointProperties e) { }
+
+        public virtual void OnFractalReleased(Complex origin, PointerPointProperties e) { }
+    }
+
+    public class MandelbrotViewmodel : FractalViewmodel
+    {
+        public MandelbrotViewmodel() : base(new MandelbrotGenerator())
+        {
+        }
+
+        protected new MandelbrotGenerator Model => base.Model as MandelbrotGenerator ;
+
+        public override IViewbox DefaultViewbox { get; } = new SimpleViewbox(-1, 1, 2, 2);
+
+        public double JuliaConstantReal
+        {
+            get => Model.JuliaConstant.Real;
             set
             {
-                if (Generator is JuliaSet)
+                if (Model.JuliaConstant.Real != value)
                 {
-                    var g = Generator as JuliaSet;
-                    if (g.EscapeBoundary != value)
-                    {
-                        g.EscapeBoundary = value;
-                        OnPropertyChanged(nameof(R));
-                        Refresh();
-                    }
+                    Model.JuliaConstant = new Complex(value, Model.JuliaConstant.Imaginary);
+                    OnPropertyChanged(nameof(JuliaConstantReal));
                 }
             }
         }
 
-
-        public double ImC
+        public double JuliaConstantImaginary
         {
-            get
-            {
-                if (Generator is IJulia)
-                    return (Generator as IJulia).C.Imaginary;
-                else
-                    return 0;
-            }
+            get => Model.JuliaConstant.Imaginary;
             set
             {
-                if (Generator is IJulia)
+                if (Model.JuliaConstant.Imaginary != value)
                 {
-                    var g = Generator as IJulia;
-                    if (g.C.Imaginary != value)
-                    {
-                        g.C = new Complex(g.C.Real, value);
-                        OnPropertyChanged(nameof(ImC));
-                        Refresh();
-                    }
+                    Model.JuliaConstant = new Complex(Model.JuliaConstant.Real, value);
+                    OnPropertyChanged(nameof(JuliaConstantReal));
                 }
             }
         }
 
 
-        public double ReC
+        public bool JuliaMode
         {
-            get
-            {
-                if (Generator is IJulia)
-                    return (Generator as IJulia).C.Real;
-                else
-                    return 0;
-            }
+            get => Model.JuliaMode;
             set
             {
-                if (Generator is IJulia)
+                if (Model.JuliaMode != value)
                 {
-                    var g = Generator as IJulia;
-                    if (g.C.Real != value)
-                    {
-                        g.C = new Complex(value, g.C.Imaginary); ;
-                        OnPropertyChanged(nameof(ReC));
-                        Refresh();
-                    }
+                    Model.JuliaMode = value;
+                    OnPropertyChanged(nameof(JuliaMode));
                 }
             }
         }
 
+        public bool juliaPreview;
 
 
-        public FractalGenerator[] Generators { get; } =
+        public override void OnFractalPressed(Complex origin, PointerPointProperties e)
         {
-            new NewtonFractal2(),
-            new NewtonMethode2(),
-            new NewtonMethode(),
-            new NewtonFractal(),
-            new Mandelbrot(),
-            new SierpinskiCarpet(),
-            new JuliaSet(),
+            if (e.IsLeftButtonPressed)
+            {
+                juliaPreview = JuliaMode;
+                Model.JuliaMode = true;
+
+                Model.JuliaConstant = origin;
+                OnPropertyChanged("");
+            }
+        }
+
+        public override void OnFractalReleased(Complex origin, PointerPointProperties e)
+        {
+            if (e.IsLeftButtonPressed)
+            {
+                JuliaMode = juliaPreview;
+            }
+        }
+    }
+
+    public class DynamicViewmodel : FractalViewmodel
+    {
+        public DynamicViewmodel() : base(new DynamicGenerator())
+        {
+        }
+
+        protected new DynamicGenerator Model => base.Model as DynamicGenerator;
+
+        public IDynamicSystem[] Systems { get; } =
+        {
+            DynamicSystem.Default,
+            new NewtonMethodeSystem("x³ - x", (Complex z) => new Complex(Math.Pow(z.Real, 3) - z.Real, 0), (Complex z) => new Complex(3 * Math.Pow(z.Real, 2) - 1, 0)) { Color = (object e) => DomainColor.Generate(((Complex)e).Real) },
+            new NewtonMethodeSystem("z³ - 1", (Complex z) => Complex.Pow(z, 3) - 1, (Complex z) => 3 * Complex.Pow(z, 2)),
+            new NewtonMethodeSystem("sin(z)", (Complex z) => Complex.Sin(z), (Complex z) => Complex.Cos(z)),
+            new NewtonMethodeSystem("sin(z) - 1", (Complex z) => Complex.Sin(z) - 1, (Complex z) => Complex.Cos(z)),
+            new NewtonMethodeSystem("tan(z)", (Complex z) => Complex.Tan(z), (Complex z) => Complex.Pow(Complex.Tan(z), 2) - 1),
+            new NewtonMethodeSystem("z⁸ + 15z⁴ - 16", (Complex z) => Complex.Pow(z, 8) + 15 * Complex.Pow(z, 4) - 16, (Complex z) =>  8 * Complex.Pow(z, 7) + 15 * 4 * Complex.Pow(z, 3)),
+            new DynamicSystem("z² + c") { Plot = (Complex z, int iterations) =>
+            {
+                Complex c = z;
+                for (int i = 0; i < iterations; i++)
+                    z = Complex.Pow(z, 2) + c;
+                return z;
+            }},
         };
 
 
-        public int[] Resolutions { get; } = { 10, 50, 100, 200, 400, 600, 800, 1000, 2000, 3000 };
-
-
-
-        public int SelectedResolution
+        
+        public IDynamicSystem System
         {
-            get => _SelectedResolution;
-            set 
-            { 
-                if (Set(ref _SelectedResolution, value))
-                    CreateBitmap(); 
-            }
-        }
-        private int _SelectedResolution = 200;
-
-
-      
-
-        public FractalGenerator Generator
-        {
-            get => _Generator;
+            get => Model.System;
             set
             {
-                if (Set(ref _Generator, value))
+                if (Model.System != value)
                 {
-                    Values = _Generator.DefaultValues;
-                    OnPropertyChanged(nameof(Iterations));
-                    OnPropertyChanged(nameof(MinIterations));
-                    OnPropertyChanged(nameof(MaxIterations));
-                    Refresh();
+                    Model.System = value;
+                    OnPropertyChanged(nameof(System));
                 }
             }
         }
-        private FractalGenerator _Generator;
-
-
-        //public double HorizontalOffset { get => Values.left * Zoom + 1; }
-        //public double VerticalOffset { get => Values.top * Zoom + 1; }
-
-        public double HorizontalOffset
-        {
-            get => Values.CenterX - Generator.DefaultValues.CenterX;
-            set 
-            {
-                
-            }
-        }
-        private double _HorizontalOffset;
-
-        public double VerticalOffset
-        {
-            get => Generator.DefaultValues.CenterY - Values.CenterY;
-            set 
-            {
-                
-            }
-        }
-        private double _VerticalOffset;
-
-        public double Zoom
-        {
-            get => Generator.DefaultValues.Width / Values.Width;
-            set 
-            {
-                var v = Generator.DefaultValues;
-                double width = v.Width / value;
-                double height = v.Height / value;
-                double offsetX = v.left / value + Values.left - v.left;
-                double offsetY = v.top / value + VerticalOffset;
-
-                Values = new ValueRect(offsetX, offsetY, width + offsetX, height + offsetY);
-                Refresh();
-            }
-        }
-        private double _Zoom = 1;
-
-
-       
-
-
-        public WriteableBitmap Bitmap
-        {
-            get => _Bitmap;
-            set { Set(ref _Bitmap, value); }
-        }
-        private WriteableBitmap _Bitmap;
-
-
-
-        #endregion
-
-        #region Private Fields
-
-
-
-   
-        public ValueRect Values
-        {
-            get => _Values;
-            set 
-            {
-                if (Set(ref _Values, value))
-                {
-                    OnPropertyChanged(nameof(HorizontalOffset));
-                    OnPropertyChanged(nameof(VerticalOffset));
-                    OnPropertyChanged(nameof(Zoom));
-                }
-            }
-        }
-        private ValueRect _Values;
-
-
-        public double ZoomSpeed
-        {
-            get => _ZoomSpeed;
-            set { Set(ref _ZoomSpeed, value); }
-        }
-        private double _ZoomSpeed = 1.2;
-
-
-
-
-        #endregion
-
-        #region Public Fields
-
-
-
-        // No Public Fields
-
-
-
-        #endregion
-
-        #region Private Methodes
-
-
-
-        private void Refresh()
-        {
-            Generator?.UpdateBitmap(Bitmap, Values);
-            Bitmap?.Invalidate();
-            OnPropertyChanged(nameof(ValuesInCondomain));
-            OnPropertyChanged(nameof(ValuesInDomain));
-        }
-
-        public void image_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
-        {
-            var element = sender as FrameworkElement;
-
-            var point = e.GetCurrentPoint(element);
-            var position = point.Properties.ContactRect;
-
-            //double xPos = (position.X / element.ActualWidth * 2) - 1;
-            //double yPos = (position.Y / element.ActualHeight * 2) - 1;
-
-
-
-            double width = Values.Width;
-            double height = Values.Height;
-            double offsetX = Values.left;
-            double offsetY = Values.top;
-
-            double xPos = position.X * (width) / (element.ActualWidth) + offsetX;
-            double yPos = position.Y * (height) / (element.ActualHeight) + offsetY;
-
-            
-
-            if (point.Properties.MouseWheelDelta < 0)
-            {
-                // Change the size of the picturebox, multiply it by the ZOOMFACTOR
-                width = width * ZoomSpeed;
-                height = height * ZoomSpeed;
-
-                // Formula to move the picturebox, to zoom in the point selected by the mouse cursor
-                offsetY = yPos - (yPos - offsetY) * ZoomSpeed;
-                offsetX = xPos - (xPos - offsetX) * ZoomSpeed;
-
-            }
-            else
-            {
-                // Change the size of the picturebox, divide it by the ZOOMFACTOR
-                width = width / ZoomSpeed;
-                height = height / ZoomSpeed;
-
-                // Formula to move the picturebox, to zoom in the point selected by the mouse cursor
-                offsetY = yPos - (yPos - offsetY) / ZoomSpeed;
-                offsetX = xPos - (xPos - offsetX) / ZoomSpeed;
-            }
-
-            Values = new ValueRect(offsetX, offsetY, width + offsetX, height + offsetY);
-            Refresh();
-        }
-
-        public void ResetFrame()
-        {
-            Values = Generator.DefaultValues;
-            Refresh();
-        }
-
-        public void UpdateFrame()
-        {
-            var v = Generator.DefaultValues;
-            double width = v.Width / Zoom;
-            double height = v.Height / Zoom;
-            double offsetX = v.left / Zoom + HorizontalOffset;
-            double offsetY = v.top / Zoom + VerticalOffset;
-
-            Values = new ValueRect(offsetX, offsetY, width + offsetX, height + offsetY);
-            Refresh();
-        }
-
-        #endregion
-
-        #region Public Methodes
-
-
-
-        public void CreateBitmap()
-        {
-            if (Bitmap != null && Bitmap.PixelWidth == SelectedResolution)
-                return;
-
-            Bitmap = new WriteableBitmap(SelectedResolution, SelectedResolution);
-            Refresh();
-        }
-
-
-        private WriteableBitmap ScaleBitmap(WriteableBitmap original, int width, int height)
-        {
-            return original.Resize(width, height, WriteableBitmapExtensions.Interpolation.NearestNeighbor);
-        }
-
-        public Complex Complexi { get; } = new Complex(1, 1);
-
-        #endregion
-
-        #region Events
-
-
-
-        // No Events
-
-
-
-        #endregion
 
     }
 }

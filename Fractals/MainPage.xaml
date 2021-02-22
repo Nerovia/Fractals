@@ -5,26 +5,99 @@
     xmlns:local="using:Fractals"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:muxc="using:Windows.UI.Xaml.Controls"
-    xmlns:muxc1="using:Microsoft.UI.Xaml.Controls" 
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:v="using:Fractals.View" 
+    xmlns:vm="using:Fractals.Viewmodel"
+    xmlns:e="using:Microsoft.Toolkit.Uwp.UI.Extensions"
+    xmlns:c="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <Page.Resources>
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        
+        <Style x:Key="TextBoxStyle" TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style x:Key="SeparatorStyle" TargetType="NavigationViewItemSeparator">
+            <Setter Property="Margin" Value="-5,5,-5,5"/>
+        </Style>
+
+        <Style x:Key="NumberBoxStyle" TargetType="muxc:NumberBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="SpinButtonPlacementMode" Value="Inline"/>
+        </Style>
+
+        <Style x:Key="ToggleSwitchStyle" TargetType="ToggleSwitch">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <DataTemplate x:Key="MandelbrotTempalte" x:DataType="vm:MandelbrotViewmodel">
+            <StackPanel>
+                <muxc:NumberBox
+                    Header = "Iterations"
+                    Value="{Binding Iterations, Mode=TwoWay}"
+                    Maximum="{Binding IterationsMax}"
+                    Minimum="{Binding IterationsMin}"
+                    Style="{StaticResource NumberBoxStyle}"/>
+
+                <ToggleSwitch
+                    Header="Julia Mode"
+                    IsOn="{Binding JuliaMode, Mode=TwoWay}"
+                    Style="{StaticResource ToggleSwitchStyle}"
+                />
+
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DynamicTempalte" x:DataType="vm:DynamicViewmodel">
+            <StackPanel>
+                <muxc:NumberBox
+                    Header = "Iterations"
+                    Value="{Binding Iterations, Mode=TwoWay}"
+                    Maximum="{Binding IterationsMax}"
+                    Minimum="{Binding IterationsMin}"
+                    Style="{StaticResource NumberBoxStyle}"/>
+
+                <ComboBox
+                    Header="Function"
+                    ItemsSource="{Binding Systems}"
+                    SelectedItem="{Binding System, Mode=TwoWay}"
+                    Style="{StaticResource ComboBoxStyle}"
+                    />
+            </StackPanel>
+        </DataTemplate>
+
+        <v:FractalViewmodelSelector 
+            x:Key="FractalViewmodelSelector"
+            MandelbrotTemplate="{StaticResource MandelbrotTempalte}"
+            DynamicTemplate="{StaticResource DynamicTempalte}"/>
+
+        <v:ScientificNotationConverter
+            x:Key="ScientificNotationConverter"/>
+
+    </Page.Resources>
+    
+    
     <Grid DataContext="{x:Bind Viewmodel}">
         <SplitView IsPaneOpen="True" OpenPaneLength="300" DisplayMode="CompactInline">
             <SplitView.Pane>
                 <Grid Padding="24" Background="{StaticResource SystemControlAcrylicWindowBrush}">
-                    
+
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
 
-                    <StackPanel
-                        Grid.Row="0">
+                    <StackPanel Grid.Row="0">
 
-                        <muxc:ComboBox
+                        <ComboBox
                             Margin="5"
                             Header="Type"
                             PlaceholderText="Choose a Fractal"
@@ -32,7 +105,7 @@
                             ItemsSource="{Binding Generators, Mode=OneWay}"
                             SelectedItem="{Binding Generator, Mode=TwoWay}"
                             />
-                        
+
                         <ComboBox
                             Header="Resolution"
                             Grid.Column="0"
@@ -42,33 +115,26 @@
                             HorizontalAlignment="Stretch"/>
 
                         <NavigationViewItemSeparator Margin="-5,5,-5,5"/>
-                        
-                        <muxc1:NumberBox
-                            Header="Iterations"
-                            Margin="5"
-                            SpinButtonPlacementMode="Inline"
-                            Minimum="0"
-                            Maximum="1000"
-                            Value="{Binding Iterations, Mode=TwoWay}"/>
+                    </StackPanel>
 
-                        
+                    <ScrollViewer Grid.Row="1"
+                                  Content="{Binding Generator, Mode=OneWay}"
+                                  ContentTemplateSelector="{StaticResource FractalViewmodelSelector}">
 
-                       
 
-                    </StackPanel> 
-                    
+                    </ScrollViewer>
 
                     <StackPanel
-                        Grid.Row="1">
+                        Grid.Row="2">
 
-                        <muxc1:NumberBox
+                        <!--<muxc:NumberBox
                             Header="Horizontal Offset"
                             AcceptsExpression="True"
                             Margin="5"
                             SpinButtonPlacementMode="Inline"
                             Value="{Binding OriginX, Mode=TwoWay}"/>
 
-                        <muxc1:NumberBox
+                        <muxc:NumberBox
                             Header="Vertical Offset"
                             AcceptsExpression="True"
                             Margin="5"
@@ -76,25 +142,57 @@
                             Value="{Binding OriginY, Mode=TwoWay}"
                             />
 
-                        <muxc1:NumberBox
+                        <muxc:NumberBox
                             Header="Zoom Factor"
                             AcceptsExpression="True"
                             Margin="5"
                             SpinButtonPlacementMode="Inline"
                             
-                            Value="{Binding Zoom, Mode=TwoWay}"/>
+                            Value="{Binding Zoom, Mode=TwoWay}"/>-->
 
-                       
+
+                        <NavigationViewItemSeparator 
+                            Style="{StaticResource SeparatorStyle}"/>
+
+                        
+
+                        <Border Visibility="Collapsed" Margin="5" BorderThickness="0.1" BorderBrush="Black" CornerRadius="5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0" BorderThickness="0"/>
+                                
+                                <Button Grid.Column="1" CornerRadius="0"> 
+                                    <Button.Content>
+                                        <SymbolIcon Symbol="Refresh"/>
+                                    </Button.Content>
+                                </Button>
+
+                                <Button Grid.Column="2" CornerRadius="0">
+                                    <Button.Content>
+                                        <SymbolIcon Symbol="Emoji2"/>
+                                    </Button.Content>
+                                </Button>
+
+                            </Grid>
+                        </Border>
+
+             
+                        
+
                         <Button
                             Margin="5,15,5,5"
                             Content="Reset"
                             HorizontalAlignment="Stretch"
                             Click="Reset_Click"/>
+                        
 
-                        <NavigationViewItemSeparator Margin="-5,5,-5,5"/>
-
-
-
+                        <NavigationViewItemSeparator 
+                            Style="{StaticResource SeparatorStyle}"/>
 
                         <Button
                             Style="{StaticResource AccentButtonStyle}"
@@ -103,37 +201,51 @@
                             HorizontalAlignment="Stretch"
                             Click="SaveButton_Click"/>
 
+                        
+
                     </StackPanel>
 
-                    
-                </Grid>
 
+                </Grid>
             </SplitView.Pane>
 
             <Border Background="{StaticResource SystemControlAcrylicWindowBrush}">
-                <Viewbox Margin="40" Stretch="Uniform">
-                    <Grid>
-                        <Image
-                            Width="100"
-                            Height="100"
-                            x:Name="image" 
-                            Source="{Binding Bitmap, Mode=OneWay}"
-                            PointerWheelChanged="image_PointerWheelChanged"
-                            PointerMoved="image_PointerMoved"
-                            PointerPressed="image_PointerPressed"/>
-                        <Ellipse 
-                            Width="1" 
-                            Height="1"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Fill="White"/>
-                        
-                    </Grid>
-                </Viewbox>
+                <Grid Margin="40">
+                    <Viewbox x:Name="Viewbox" Stretch="Uniform">
+                        <c:DropShadowPanel
+                            OffsetX="0"
+                            OffsetY="0"
+                            BlurRadius="6"
+                            ShadowOpacity="0.2">
+                            <Border CornerRadius="0.5">
+                                <Image
+                                    Width="100"
+                                    Height="100"
+                                    x:Name="Image" 
+                                    Source="{Binding Bitmap, Mode=OneWay}"
+                                    PointerWheelChanged="image_PointerWheelChanged"
+                                    PointerMoved="image_PointerMoved"
+                                    PointerPressed="image_PointerPressed"
+                                    PointerEntered="image_PointerEntered"
+                                    PointerExited="image_PointerExited"
+                                    ManipulationDelta="image_ManipulationDelta" ManipulationMode="All"/>
+                            </Border>
+                        </c:DropShadowPanel>
+                    </Viewbox>
+
+                    <TextBlock
+                        Margin="10"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right"
+                        Foreground="White"
+                        >
+                        ( <Run Text="{Binding PointerFocus.Real, Mode=OneWay, Converter={StaticResource ScientificNotationConverter}}"/>,
+                        <Run Text="{Binding PointerFocus.Imaginary, Mode=OneWay, Converter={StaticResource ScientificNotationConverter}}"/> )
+                    </TextBlock>
+                </Grid>
             </Border>
-            
-            
+
+
         </SplitView>
-        
     </Grid>
 </Page>

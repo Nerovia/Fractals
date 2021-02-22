@@ -136,17 +136,64 @@ namespace Fractals
 
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
-            //Viewmodel.ResetFrame();
+            Viewmodel.Reset();
         }
 
         private void image_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
-
+            Viewmodel.OnFractalPointerMoved(sender, e);
         }
 
         private void image_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             Viewmodel.OnPointerPressed(sender, e);
+        }
+
+        private void image_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            Viewmodel.OnFractalPointerMoved(sender, e);
+        }
+
+        private void image_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            Viewmodel.OnFractalPointerExited(sender, e);
+        }
+
+        private void Slider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+
+        }
+
+        private void image_ManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
+        {
+            if (e.IsInertial)
+                return;
+
+            var element = sender as Image;
+            var viewbox = Viewmodel.Viewbox;
+            var translation = e.Delta.Translation;
+            var scale = e.Delta.Scale;
+            var position = e.Position;
+            var size = GetImageSize();
+
+            var offset = new Complex(-translation.X * viewbox.Width / size ,
+                                     -translation.Y * (-viewbox.Height) / size );
+
+            var focus = new Complex(position.X * viewbox.Width / element.ActualWidth + viewbox.Left,
+                                    position.Y * (-viewbox.Height) / element.ActualHeight + viewbox.Top);
+
+
+
+            Viewmodel.Move(offset);
+            Viewmodel.Viewbox.Zoom(scale, focus);
+        }
+
+        public double GetImageSize()
+        {
+            var width = Viewbox.ActualWidth;
+            var height = Viewbox.ActualHeight;
+            var size = Math.Min(width, height);
+            return size;
         }
     }
 }

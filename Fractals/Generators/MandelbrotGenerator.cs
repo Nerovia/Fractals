@@ -8,15 +8,23 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.UI;
 
-namespace Fractals.Generators2
+namespace Fractals.Generators
 {
-    public class Mandelbrot2 : FractalGenerator2
+    public class MandelbrotGenerator : FractalGenerator
     {
         public override string ToString() => "Mandelbrot";
 
-        protected override Windows.UI.Color[,] Generate(Rectangle drawbox, Viewbox viewbox)
+        public Complex JuliaConstant { get; set; } = new Complex(-0.4, 0.6);
+
+        public bool JuliaMode { get; set; } = false;
+
+        protected override Windows.UI.Color[,] Generate(Rectangle drawbox, IViewbox viewbox)
         {
-            var plot = Plot(drawbox, viewbox, 2, Iterate2);
+            object[,] plot;
+            if (JuliaMode)
+                plot = Plot(drawbox, viewbox, 2, IterateJulia, Iterations);
+            else
+                plot = Plot(drawbox, viewbox, 2, IterateMandelbrot, Iterations);
 
             var maxIterationCount = 1;
             foreach (var p in plot)
@@ -51,13 +59,13 @@ namespace Fractals.Generators2
             });
         }
 
-        protected object Iterate2(Complex z)
+        protected object IterateJulia(Complex z, int iterations)
         {
             int i = 0;
             int escapeBoundary = 8;
-            var c = new Complex(-0.5, 0);
+            var c = JuliaConstant;
 
-            while (z.Real * z.Real + z.Imaginary * z.Imaginary < escapeBoundary && i < Iterations)
+            while (z.Real * z.Real + z.Imaginary * z.Imaginary < escapeBoundary && i < iterations)
             {
                 z = new Complex(z.Real * z.Real - z.Imaginary * z.Imaginary + c.Real, 2 * z.Real * z.Imaginary + c.Imaginary);
                 i += 1;
@@ -65,13 +73,13 @@ namespace Fractals.Generators2
             return i;
         }
 
-        protected object Iterate1(Complex c)
+        protected object IterateMandelbrot(Complex c, int iterations)
         {
             int i = 0;
             int escapeBoundary = 8;
             var z = Complex.Zero;
 
-            while (z.Real * z.Real + z.Imaginary * z.Imaginary <= escapeBoundary && i < Iterations)
+            while (z.Real * z.Real + z.Imaginary * z.Imaginary <= escapeBoundary && i < iterations)
             {
                 var temp = z.Real * z.Real - z.Imaginary * z.Imaginary + c.Real;
                 z = new Complex(temp, 2 * z.Real * z.Imaginary + c.Imaginary);

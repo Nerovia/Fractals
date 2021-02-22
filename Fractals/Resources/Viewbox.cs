@@ -8,7 +8,36 @@ using System.Threading.Tasks;
 
 namespace Fractals.Resources
 {    
-    public class Viewbox
+    public interface IViewbox
+    {
+        double Top { get; }
+        double Bottom { get; }
+        double Left { get; }
+        double Right { get; }
+        double Width { get; }
+        double Height { get; }
+    }
+
+    public class SimpleViewbox : IViewbox
+    {
+        public SimpleViewbox(double left, double top, double width, double height)
+        {
+            Left = left;
+            Top = top;
+            Right = left + width;
+            Bottom = top - height;
+        }
+
+        public double Top { get; }
+        public double Bottom { get; }
+        public double Left { get; }
+        public double Right { get; }
+        public double Width { get => Right - Left; }
+        public double Height { get => Top - Bottom; }
+    }
+
+
+    public class Viewbox : IViewbox
     {
         public Viewbox(Complex bottomLeft, Complex topRight)
         {
@@ -27,6 +56,10 @@ namespace Fractals.Resources
         public double Right { get => TopRight.Real; }
 
         public double Left { get => BottomLeft.Real; }
+
+        public double Width { get => Size.Real; }
+
+        public double Height { get => Size.Imaginary; }
 
         public Complex BottomLeft { get; set; }
 

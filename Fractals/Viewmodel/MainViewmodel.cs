@@ -1,4 +1,4 @@
-﻿using Fractals.Generators2;
+﻿using Fractals.Generators;
 using Fractals.Resources;
 using System;
 using System.Collections.Generic;
@@ -21,24 +21,41 @@ namespace Fractals.Viewmodel
             Generator = Generators.FirstOrDefault();
         }
 
-        public FractalGenerator2[] Generators { get; set; } =
+        public FractalViewmodel[] Generators { get; } =
         {
-            new DynamicSystemPlotter(),
-            new Mandelbrot2(),
+            new MandelbrotViewmodel(),
+            new DynamicViewmodel(),
         };
 
-        public FractalGenerator2 Generator
+        public FractalViewmodel Generator
         {
-            get => _Generator;
+            get => _generator;
             set
             {
-                if (Set(ref _Generator, value))
-                {
-                    Update();
-                }
+                if (_generator == value)
+                    return;
+                if (_generator != null)
+                    _generator.PropertyChanged -= OnViewmodelPropertyChanged;
+                
+                _generator = value;
+
+                if (_generator != null)
+                    _generator.PropertyChanged += OnViewmodelPropertyChanged;
+
+                OnPropertyChanged(nameof(Generator));
+                Update();
             }
         }
-        private FractalGenerator2 _Generator;
+
+        private void OnViewmodelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Update();
+        }
+
+        private FractalViewmodel _generator;
+
+
+
 
         public int[] Resolutions { get; } = { 10, 50, 100, 200, 400, 600, 800, 1000, 2000, 3000 };
 
@@ -52,21 +69,6 @@ namespace Fractals.Viewmodel
             }
         }
         private int _SelectedResolution = 200;
-
-
-        public int Iterations
-        {
-            get => Generator.Iterations;
-            set
-            {
-                if (Generator.Iterations != value)
-                {
-                    Generator.Iterations = value;
-                    OnPropertyChanged(nameof(Iterations));
-                    Update();
-                }
-            }
-        }
 
 
         public double OriginX
@@ -103,6 +105,22 @@ namespace Fractals.Viewmodel
         private double _Zoom = 1;
 
 
+
+        public int ZoomLevel
+        {
+            get => (int)Math.Log(_Zoom,1.2);
+            set 
+            {
+                if (_ZoomLevel != value)
+                {
+                    _ZoomLevel = value;
+                    Zoom = Math.Pow(1.2, _ZoomLevel);
+                }
+            }
+        }
+        private int _ZoomLevel;
+
+
         public WriteableBitmap Bitmap
         {
             get => _Bitmap;
@@ -115,7 +133,7 @@ namespace Fractals.Viewmodel
         private WriteableBitmap _Bitmap;
 
 
-        public Viewbox Viewbox { get; private set; } = new Viewbox(new Complex(-1, -1), new Complex(1, 1));
+        public Viewbox Viewbox { get; private set; } = new Viewbox(new Complex(-2, -2), new Complex(2, 2));
 
 
         private void Update()
@@ -125,6 +143,7 @@ namespace Fractals.Viewmodel
             OnPropertyChanged(nameof(OriginX));
             OnPropertyChanged(nameof(OriginY));
             OnPropertyChanged(nameof(Zoom));
+            OnPropertyChanged(nameof(ZoomLevel));
         }
 
         public void CreateBitmap()
@@ -134,11 +153,6 @@ namespace Fractals.Viewmodel
 
             Bitmap = new WriteableBitmap(SelectedResolution, SelectedResolution);
             Update();
-        }
-
-        public double Map(double x, double xmin, double xmax, double ymin, double ymax)
-        {
-            return (x - xmin) * (ymax - ymin) / (xmax - xmin) + xmax;
         }
 
 
@@ -166,6 +180,49 @@ namespace Fractals.Viewmodel
             Update();
         }
 
+
+        public Complex PointerFocus
+        {
+            get => _PointerFocus;
+            set { Set(ref _PointerFocus, value); }
+        }
+        private Complex _PointerFocus;
+
+
+        private Complex GetPointerFocus(object sender, PointerRoutedEventArgs e)
+        {
+            var element = sender as FrameworkElement;
+
+            var pointer = e.GetCurrentPoint(element);
+            var pointerPosition = pointer.Properties.ContactRect;
+
+            return new Complex(pointerPosition.X * Viewbox.Size.Real / element.ActualWidth + Viewbox.Left,
+                                    pointerPosition.Y * (-Viewbox.Size.Imaginary) / element.ActualHeight + Viewbox.Top);
+        }
+
+        public void Move(Complex offset)
+        {
+            Viewbox.Move(offset);
+            Update();
+        }
+
+        public void Reset()
+        {
+            Viewbox = new Resources.Viewbox(new Complex(-1, -1), new Complex(1, 1));
+            Update();
+        }
+
+        public void OnFractalPointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            PointerFocus = GetPointerFocus(sender, e);
+        }
+
+        public void OnFractalPointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            PointerFocus = Viewbox.Origin;
+        }
+
+
         public void OnPointerPressed(object sender, PointerRoutedEventArgs e)
         {
             var element = sender as FrameworkElement;
@@ -175,24 +232,6 @@ namespace Fractals.Viewmodel
 
             var focus = new Complex(pointerPosition.X * Viewbox.Size.Real / element.ActualWidth + Viewbox.Left,
                                     pointerPosition.Y * (-Viewbox.Size.Imaginary) / element.ActualHeight + Viewbox.Top);
-
-            if (pointer.Properties.IsMiddleButtonPressed)
-            {
-                Viewbox.Origin = focus;
-            }
-            else if (pointer.Properties.IsRightButtonPressed)
-            {
-                Viewbox.Zoom(0.8, focus);
-                _Zoom /= 0.8;
-            }
-            else if (pointer.Properties.IsLeftButtonPressed)
-            {
-                Viewbox.Zoom(1.2, focus);
-                _Zoom /= 1.2;
-            }
-            Update();
-
-            e.Handled = true;
         }
 
     }
