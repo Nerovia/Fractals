@@ -6,9 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Markup;
 
 namespace Fractals.View
 {
+    public class ParameterHeader
+    {
+        public string Name { get; set; }
+        public string Glyph { get; set; }
+    }
+
     public class FractalViewmodelSelector : DataTemplateSelector
     {
         public DataTemplate MandelbrotTemplate { get; set; }

@@ -3,10 +3,15 @@ using Fractals.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Graphics.Imaging;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Imaging;
@@ -19,6 +24,7 @@ namespace Fractals.Viewmodel
         {
             CreateBitmap();
             Generator = Generators.FirstOrDefault();
+            Generator.Iterations = 2;
         }
 
         public FractalViewmodel[] Generators { get; } =
@@ -121,16 +127,33 @@ namespace Fractals.Viewmodel
         private int _ZoomLevel;
 
 
+        //public async void ScaleBitmap(WriteableBitmap bitmap)
+        //{
+        //    using (var stream = System.Drawing.Bitmap.PixelBuffer.AsStream().AsRandomAccessStream())
+        //    {
+        //        var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.BmpEncoderId, stream);
+        //        encoder.BitmapTransform.ScaledHeight = 1000;
+        //        encoder.BitmapTransform.ScaledWidth = 1000;
+        //        if (Math.Max(bitmap.PixelWidth, bitmap.PixelHeight) < 800)
+        //            encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.NearestNeighbor;
+        //        else
+        //            encoder.BitmapTransform.InterpolationMode = BitmapInterpolationMode.Linear;
+        //        encoder.SetPixelData(BitmapPixelFormat.Rgba8, BitmapAlphaMode.Straight, (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight, 100, 100, bitmap.ToByteArray());
+        //        await encoder.FlushAsync();
+        //    }
+        //    System.Drawing.Bitmap.Invalidate();
+        //}
+
+
         public WriteableBitmap Bitmap
         {
             get => _Bitmap;
-            set 
-            { 
-                if (Set(ref _Bitmap, value))
-                    Update();
+            set
+            {
+                Set(ref _Bitmap, value);
             }
         }
-        private WriteableBitmap _Bitmap;
+        private WriteableBitmap _Bitmap = new WriteableBitmap(1000, 1000);
 
 
         public Viewbox Viewbox { get; private set; } = new Viewbox(new Complex(-2, -2), new Complex(2, 2));
@@ -139,7 +162,7 @@ namespace Fractals.Viewmodel
         private void Update()
         {
             Generator?.Update(Bitmap, Viewbox);
-            Bitmap?.Invalidate();
+            Bitmap.Invalidate();
             OnPropertyChanged(nameof(OriginX));
             OnPropertyChanged(nameof(OriginY));
             OnPropertyChanged(nameof(Zoom));
@@ -169,13 +192,13 @@ namespace Fractals.Viewmodel
            
             if (pointer.Properties.MouseWheelDelta < 0)
             {
-                Viewbox.Zoom(0.8, focus);
-                _Zoom /= 0.8;
+                Viewbox.Zoom(0.9, focus);
+                _Zoom /= 0.9;
             }
             else
             {
-                Viewbox.Zoom(1.2, focus);
-                _Zoom /= 1.2;
+                Viewbox.Zoom(1.1, focus);
+                _Zoom /= 1.1;
             }
             Update();
         }

@@ -14,7 +14,7 @@ namespace Fractals.Generators
     {
         public override string ToString() => "Mandelbrot";
 
-        public Complex JuliaConstant { get; set; } = new Complex(-0.4, 0.6);
+        public Complex JuliaConstant { get; set; }
 
         public bool JuliaMode { get; set; } = false;
 

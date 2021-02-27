@@ -14,61 +14,133 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
-        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+
+        <v:ComplexNotationConverter
+            x:Key="ComplexNotationConverter"/>
+
+
+        <v:RoundingConverter
+            x:Key="RoundingConverter"/>
+
+
+        <ThemeShadow x:Name="SharedShadow"/>
+
+        <Style TargetType="v:ParameterPresenter">
+            <Setter Property="Margin" Value="10"/>
         </Style>
+
+        <Style TargetType="NavigationViewItemSeparator">
+            <Setter Property="Margin" Value="-10,5"/>
+        </Style>
+
+        <Style x:Key="DropShadowStyle" TargetType="c:DropShadowPanel">
+            <Setter Property="OffsetX" Value="0"/>
+            <Setter Property="OffsetY" Value="0"/>
+            <Setter Property="BlurRadius" Value="20"/>
+            <Setter Property="ShadowOpacity" Value="0.1"/>
+        </Style>
+
+        <DataTemplate x:Key="ParameterHeaderTemplate" x:DataType="v:ParameterHeader">
+            <Grid Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <FontIcon 
+                    Grid.Column="0"
+                    Glyph="{Binding Glyph}"
+                    VerticalAlignment="Center"
+                    FontSize="14"/>
+
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="5,0"
+                    Text="{Binding Name}"
+                    VerticalAlignment="Center"
+                    />
+
+            </Grid>
+        </DataTemplate>
         
-        <Style x:Key="TextBoxStyle" TargetType="TextBox">
-            <Setter Property="Margin" Value="5"/>
-        </Style>
-
-        <Style x:Key="SeparatorStyle" TargetType="NavigationViewItemSeparator">
-            <Setter Property="Margin" Value="-5,5,-5,5"/>
-        </Style>
-
-        <Style x:Key="NumberBoxStyle" TargetType="muxc:NumberBox">
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="SpinButtonPlacementMode" Value="Inline"/>
-        </Style>
-
-        <Style x:Key="ToggleSwitchStyle" TargetType="ToggleSwitch">
-            <Setter Property="Margin" Value="5"/>
-        </Style>
-
         <DataTemplate x:Key="MandelbrotTempalte" x:DataType="vm:MandelbrotViewmodel">
-            <StackPanel>
-                <muxc:NumberBox
-                    Header = "Iterations"
-                    Value="{Binding Iterations, Mode=TwoWay}"
-                    Maximum="{Binding IterationsMax}"
-                    Minimum="{Binding IterationsMin}"
-                    Style="{StaticResource NumberBoxStyle}"/>
+            <StackPanel Margin="-10,0">
 
-                <ToggleSwitch
-                    Header="Julia Mode"
-                    IsOn="{Binding JuliaMode, Mode=TwoWay}"
-                    Style="{StaticResource ToggleSwitchStyle}"
-                />
+
+                <NavigationViewItemSeparator/>
+
+                <v:ParameterPresenter Glyph="&#xE8EE;" Title="Iterations">
+                    <muxc:NumberBox
+                        Value="{Binding Iterations, Mode=TwoWay}"
+                        Minimum="{Binding IterationsMin}"
+                        Maximum="{Binding IterationsMax}"
+                        Width="160"
+                        HorizontalAlignment="Right"
+                        SpinButtonPlacementMode="Inline"/>
+                </v:ParameterPresenter>
+
+
+
+                <v:ParameterPresenter>
+                    <ToggleButton 
+                        Content="Show Julia-Set" 
+                        HorizontalAlignment="Stretch"
+                        IsChecked="{Binding JuliaMode, Mode=TwoWay}"/>
+                </v:ParameterPresenter>
+
+                <StackPanel Visibility="{Binding JuliaMode, Mode=OneWay}">
+                    <NavigationViewItemSeparator/>
+
+                    <v:ParameterPresenter Glyph="&#xEA62;" Title="Real">
+                        <muxc:NumberBox
+                            Value="{Binding JuliaConstantReal, Mode=TwoWay}"
+                            LargeChange="0.1"
+                            SmallChange="0.05"
+                            Width="160"
+                            HorizontalAlignment="Right"
+                            SpinButtonPlacementMode="Inline"/>
+                    </v:ParameterPresenter>
+
+                    <v:ParameterPresenter Glyph="&#xE7EB;" Title="Imaginary">
+                        <muxc:NumberBox
+                            Value="{Binding JuliaConstantImaginary, Mode=TwoWay}"
+                            Width="160"
+                            LargeChange="0.1"
+                            SmallChange="0.05"
+                            HorizontalAlignment="Right"
+                            SpinButtonPlacementMode="Inline"/>
+                    </v:ParameterPresenter>
+                </StackPanel>
 
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="DynamicTempalte" x:DataType="vm:DynamicViewmodel">
-            <StackPanel>
-                <muxc:NumberBox
-                    Header = "Iterations"
-                    Value="{Binding Iterations, Mode=TwoWay}"
-                    Maximum="{Binding IterationsMax}"
-                    Minimum="{Binding IterationsMin}"
-                    Style="{StaticResource NumberBoxStyle}"/>
+            <StackPanel Margin="-10,0">
 
-                <ComboBox
-                    Header="Function"
-                    ItemsSource="{Binding Systems}"
-                    SelectedItem="{Binding System, Mode=TwoWay}"
-                    Style="{StaticResource ComboBoxStyle}"
-                    />
+
+                <NavigationViewItemSeparator/>
+
+                <v:ParameterPresenter Glyph="&#xE8EE;" Title="Iterations">
+                    <muxc:NumberBox
+                        Value="{Binding Iterations, Mode=TwoWay}"
+                        Minimum="{Binding IterationsMin}"
+                        Maximum="{Binding IterationsMax}"
+                        Width="160"
+                        HorizontalAlignment="Right"
+                        SpinButtonPlacementMode="Inline"/>
+                </v:ParameterPresenter>
+
+                <v:ParameterPresenter Glyph="&#xE943;" Title="Function">
+                    <ComboBox 
+                        ItemsSource="{Binding Systems}"
+                        SelectedItem="{Binding System, Mode=TwoWay}"
+                        Width="160"
+                        HorizontalAlignment="Right">
+                    </ComboBox>
+                </v:ParameterPresenter>
+
+
             </StackPanel>
         </DataTemplate>
 
@@ -77,175 +149,156 @@
             MandelbrotTemplate="{StaticResource MandelbrotTempalte}"
             DynamicTemplate="{StaticResource DynamicTempalte}"/>
 
-        <v:ScientificNotationConverter
-            x:Key="ScientificNotationConverter"/>
 
     </Page.Resources>
-    
-    
-    <Grid DataContext="{x:Bind Viewmodel}">
-        <SplitView IsPaneOpen="True" OpenPaneLength="300" DisplayMode="CompactInline">
-            <SplitView.Pane>
-                <Grid Padding="24" Background="{StaticResource SystemControlAcrylicWindowBrush}">
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
 
 
-                    <StackPanel Grid.Row="0">
+    <Grid 
+        
+        DataContext="{x:Bind Viewmodel}">
 
-                        <ComboBox
-                            Margin="5"
-                            Header="Type"
-                            PlaceholderText="Choose a Fractal"
-                            HorizontalAlignment="Stretch"
-                            ItemsSource="{Binding Generators, Mode=OneWay}"
-                            SelectedItem="{Binding Generator, Mode=TwoWay}"
-                            />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="65"/>
+            <ColumnDefinition Width="335"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-                        <ComboBox
-                            Header="Resolution"
-                            Grid.Column="0"
-                            Margin="5"
-                            ItemsSource="{Binding Resolutions, Mode=OneTime}"
-                            SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
-                            HorizontalAlignment="Stretch"/>
 
-                        <NavigationViewItemSeparator Margin="-5,5,-5,5"/>
+        <Grid 
+            x:Name="ShadowReceiver"
+            Background="{StaticResource SystemControlAcrylicWindowBrush}"
+            Grid.ColumnSpan="3" 
+            Translation="0,0,-80" 
+            Margin="-40,-40,-40,-40"/>
+
+
+
+        <c:DropShadowPanel Margin="40,40,0,40" HorizontalContentAlignment="Stretch" Style="{StaticResource DropShadowStyle}" Grid.ColumnSpan="2">
+            <Grid 
+                CornerRadius="5"
+                Background="{StaticResource SystemChromeWhiteColor}"
+                Shadow="{StaticResource SharedShadow}"
+                Grid.Column="0"
+                Padding="30">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+
+                    <StackPanel Margin="-10,0">
+
+                        <v:ParameterPresenter Glyph="&#xE950;" Title="Generator">
+                            <ComboBox 
+                                    ItemsSource="{Binding Generators}"
+                                    SelectedItem="{Binding Generator, Mode=TwoWay}"
+                                    Width="160"
+                                    HorizontalAlignment="Right">
+                            </ComboBox>
+                        </v:ParameterPresenter>
+
+
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1"
+
+                    <ContentControl Grid.Row="1"
+                                    VerticalAlignment="Stretch"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"
                                   Content="{Binding Generator, Mode=OneWay}"
-                                  ContentTemplateSelector="{StaticResource FractalViewmodelSelector}">
+                                  ContentTemplateSelector="{StaticResource FractalViewmodelSelector}"/>
 
 
-                    </ScrollViewer>
+                </StackPanel>
 
-                    <StackPanel
-                        Grid.Row="2">
+                <StackPanel Grid.Row="2" Padding="-10">
 
-                        <!--<muxc:NumberBox
-                            Header="Horizontal Offset"
-                            AcceptsExpression="True"
-                            Margin="5"
-                            SpinButtonPlacementMode="Inline"
-                            Value="{Binding OriginX, Mode=TwoWay}"/>
+                    <NavigationViewItemSeparator/>
 
-                        <muxc:NumberBox
-                            Header="Vertical Offset"
-                            AcceptsExpression="True"
-                            Margin="5"
-                            SpinButtonPlacementMode="Inline"
-                            Value="{Binding OriginY, Mode=TwoWay}"
-                            />
+                    <v:ParameterPresenter Glyph="&#xECC6;" Title="Resolution">
+                        <ComboBox 
+                            ItemsSource="{Binding Resolutions}"
+                            SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
+                            HorizontalAlignment="Stretch">
+                        </ComboBox>
+                    </v:ParameterPresenter>
 
-                        <muxc:NumberBox
-                            Header="Zoom Factor"
-                            AcceptsExpression="True"
-                            Margin="5"
-                            SpinButtonPlacementMode="Inline"
-                            
-                            Value="{Binding Zoom, Mode=TwoWay}"/>-->
-
-
-                        <NavigationViewItemSeparator 
-                            Style="{StaticResource SeparatorStyle}"/>
-
-                        
-
-                        <Border Visibility="Collapsed" Margin="5" BorderThickness="0.1" BorderBrush="Black" CornerRadius="5">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <TextBox Grid.Column="0" BorderThickness="0"/>
-                                
-                                <Button Grid.Column="1" CornerRadius="0"> 
-                                    <Button.Content>
-                                        <SymbolIcon Symbol="Refresh"/>
-                                    </Button.Content>
-                                </Button>
-
-                                <Button Grid.Column="2" CornerRadius="0">
-                                    <Button.Content>
-                                        <SymbolIcon Symbol="Emoji2"/>
-                                    </Button.Content>
-                                </Button>
-
-                            </Grid>
-                        </Border>
-
-             
-                        
-
-                        <Button
-                            Margin="5,15,5,5"
-                            Content="Reset"
+                    <v:ParameterPresenter>
+                        <Button 
+                            Content="Reset" 
                             HorizontalAlignment="Stretch"
                             Click="Reset_Click"/>
                         
+                    </v:ParameterPresenter>
 
-                        <NavigationViewItemSeparator 
-                            Style="{StaticResource SeparatorStyle}"/>
-
-                        <Button
-                            Style="{StaticResource AccentButtonStyle}"
-                            Margin="5"
-                            Content="Save to Files"
+                    <v:ParameterPresenter>
+                        <Button 
+                            Content="Save to Files" 
                             HorizontalAlignment="Stretch"
+                            Style="{StaticResource AccentButtonStyle}"
                             Click="SaveButton_Click"/>
+                    </v:ParameterPresenter>
+                    
+                </StackPanel>
 
-                        
 
-                    </StackPanel>
+            </Grid>
+        </c:DropShadowPanel>
 
 
-                </Grid>
-            </SplitView.Pane>
 
-            <Border Background="{StaticResource SystemControlAcrylicWindowBrush}">
-                <Grid Margin="40">
-                    <Viewbox x:Name="Viewbox" Stretch="Uniform">
-                        <c:DropShadowPanel
-                            OffsetX="0"
-                            OffsetY="0"
-                            BlurRadius="6"
-                            ShadowOpacity="0.2">
-                            <Border CornerRadius="0.5">
-                                <Image
-                                    Width="100"
-                                    Height="100"
-                                    x:Name="Image" 
-                                    Source="{Binding Bitmap, Mode=OneWay}"
-                                    PointerWheelChanged="image_PointerWheelChanged"
-                                    PointerMoved="image_PointerMoved"
-                                    PointerPressed="image_PointerPressed"
-                                    PointerEntered="image_PointerEntered"
-                                    PointerExited="image_PointerExited"
-                                    ManipulationDelta="image_ManipulationDelta" ManipulationMode="All"/>
-                            </Border>
-                        </c:DropShadowPanel>
+        <Grid 
+            Padding="40"
+            Grid.Column="2">
+
+            <c:DropShadowPanel Style="{StaticResource DropShadowStyle}">
+                <Border CornerRadius="5" Shadow="{StaticResource SharedShadow}" e:Mouse.Cursor="Cross">
+                    <Viewbox x:Name="Viewbox" Stretch="UniformToFill">
+                        <Image
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                        Width="100"
+                        Height="100"
+                           
+                        x:Name="Image" 
+                        Source="{Binding Bitmap, Mode=OneWay}"
+                        PointerWheelChanged="image_PointerWheelChanged"
+                        PointerMoved="image_PointerMoved"
+                        PointerPressed="image_PointerPressed"
+                        PointerEntered="image_PointerEntered"
+                        PointerExited="image_PointerExited"
+                        ManipulationDelta="image_ManipulationDelta" ManipulationMode="All"/>
+
                     </Viewbox>
+                </Border>
+            </c:DropShadowPanel>
 
+            <c:DropShadowPanel 
+                Style="{StaticResource DropShadowStyle}"
+                 Margin="30"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Right">
+                <Border 
+                   
+                    CornerRadius="5"
+                    Padding="10"
+                    Background="{StaticResource SystemChromeWhiteColor}">
                     <TextBlock
-                        Margin="10"
-                        VerticalAlignment="Bottom"
-                        HorizontalAlignment="Right"
-                        Foreground="White"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Text="{Binding PointerFocus, Mode=OneWay, Converter={StaticResource ComplexNotationConverter}}"
                         >
-                        ( <Run Text="{Binding PointerFocus.Real, Mode=OneWay, Converter={StaticResource ScientificNotationConverter}}"/>,
-                        <Run Text="{Binding PointerFocus.Imaginary, Mode=OneWay, Converter={StaticResource ScientificNotationConverter}}"/> )
+                        
                     </TextBlock>
-                </Grid>
-            </Border>
+                </Border>
+            </c:DropShadowPanel>
+
+        </Grid>
 
 
-        </SplitView>
+
     </Grid>
 </Page>

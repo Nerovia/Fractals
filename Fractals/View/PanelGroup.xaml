@@ -11,14 +11,8 @@
     d:DesignWidth="400">
 
     <Grid>
-        <ItemsControl ItemsSource="{x:Bind Children}">
-            <ItemsControl.ItemContainerStyle>
-                <Style TargetType="ContentControl">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                    <Setter Property="Margin" Value="10"/>
-                </Style>
-            </ItemsControl.ItemContainerStyle>
+        <ItemsControl ItemsSource="{x:Bind Children}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch">
+            
         </ItemsControl>
     </Grid>
 </UserControl>

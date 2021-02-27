@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
@@ -39,6 +40,7 @@ namespace Fractals
         public MainPage()
         {
             this.InitializeComponent();
+            //SharedShadow.Receivers.Add(ShadowReceiver);
 
             var coreTitleBar = CoreApplication.GetCurrentView().TitleBar;
             coreTitleBar.ExtendViewIntoTitleBar = true;
@@ -169,7 +171,7 @@ namespace Fractals
             if (e.IsInertial)
                 return;
 
-            var element = sender as Image;
+            var element = sender as Windows.UI.Xaml.Controls.Image;
             var viewbox = Viewmodel.Viewbox;
             var translation = e.Delta.Translation;
             var scale = e.Delta.Scale;
@@ -195,5 +197,6 @@ namespace Fractals
             var size = Math.Min(width, height);
             return size;
         }
+
     }
 }
