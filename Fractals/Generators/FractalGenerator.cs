@@ -14,7 +14,7 @@ using Color = Windows.UI.Color;
 
 namespace Fractals.Generators
 {
-    public abstract class FractalGenerator
+    public abstract class FractalGenerator : IFractal
     {
         protected class PlotArgs
         {
@@ -147,4 +147,17 @@ namespace Fractals.Generators
 
     public delegate Color ColorMethode(object element);
     public delegate object PlotMethode(Complex z, int iterations);
+
+
+    public interface IFractal
+    {
+        int Iterations { get; set; }
+        void Update(WriteableBitmap bitmap, IViewbox viewbox);
+    }
+
+    public interface IJuliaSet : IFractal
+    {
+        Complex JuliaConstant { get; set; }
+        bool JuliaMode { get; set; }
+    }
 }

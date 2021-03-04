@@ -12,14 +12,14 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace Fractals.Viewmodel
 {
-    public abstract class FractalViewmodel : BindableBase
+    public class FractalViewmodel : BindableBase
     {
-        public FractalViewmodel(FractalGenerator generator)
+        public FractalViewmodel(IFractal generator)
         {
             Model = generator;
         }
 
-        protected FractalGenerator Model { get; private set; }
+        protected IFractal Model { get; private set; }
 
         public int Iterations
         {
@@ -56,13 +56,13 @@ namespace Fractals.Viewmodel
         public virtual void OnFractalReleased(Complex origin, PointerPointProperties e) { }
     }
 
-    public class MandelbrotViewmodel : FractalViewmodel
+    public class JuliaViewmodel : FractalViewmodel
     {
-        public MandelbrotViewmodel() : base(new MandelbrotGenerator())
+        public JuliaViewmodel(IJuliaSet generator) : base(generator)
         {
         }
 
-        protected new MandelbrotGenerator Model => base.Model as MandelbrotGenerator ;
+        protected new IJuliaSet Model => base.Model as IJuliaSet;
 
         public override IViewbox DefaultViewbox { get; } = new SimpleViewbox(-1, 1, 2, 2);
 
@@ -172,4 +172,6 @@ namespace Fractals.Viewmodel
         }
 
     }
+
+   
 }

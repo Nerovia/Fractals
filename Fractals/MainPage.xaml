@@ -63,7 +63,7 @@
             </Grid>
         </DataTemplate>
         
-        <DataTemplate x:Key="MandelbrotTempalte" x:DataType="vm:MandelbrotViewmodel">
+        <DataTemplate x:Key="JuliaSetTemplate" x:DataType="vm:JuliaViewmodel">
             <StackPanel Margin="-10,0">
 
 
@@ -131,6 +131,7 @@
                         SpinButtonPlacementMode="Inline"/>
                 </v:ParameterPresenter>
 
+
                 <v:ParameterPresenter Glyph="&#xE943;" Title="Function">
                     <ComboBox 
                         ItemsSource="{Binding Systems}"
@@ -144,9 +145,11 @@
             </StackPanel>
         </DataTemplate>
 
+
+
         <v:FractalViewmodelSelector 
             x:Key="FractalViewmodelSelector"
-            MandelbrotTemplate="{StaticResource MandelbrotTempalte}"
+            JuliaSetTemplate="{StaticResource JuliaSetTemplate}"
             DynamicTemplate="{StaticResource DynamicTempalte}"/>
 
 

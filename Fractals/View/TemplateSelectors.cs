@@ -18,15 +18,15 @@ namespace Fractals.View
 
     public class FractalViewmodelSelector : DataTemplateSelector
     {
-        public DataTemplate MandelbrotTemplate { get; set; }
+        public DataTemplate JuliaSetTemplate { get; set; }
         public DataTemplate DynamicTemplate { get; set; }
 
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
         {
             if (item is null)
                 return null;
-            else if (item.GetType() == typeof(MandelbrotViewmodel))
-                return MandelbrotTemplate;
+            else if (item.GetType() == typeof(JuliaViewmodel))
+                return JuliaSetTemplate;
             else if (item.GetType() == typeof(DynamicViewmodel))
                 return DynamicTemplate;
             else

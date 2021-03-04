@@ -29,7 +29,8 @@ namespace Fractals.Viewmodel
 
         public FractalViewmodel[] Generators { get; } =
         {
-            new MandelbrotViewmodel(),
+            new JuliaViewmodel(new MandelbrotGenerator()),
+            new JuliaViewmodel(new BurningShipGenerator()),
             new DynamicViewmodel(),
         };
 
